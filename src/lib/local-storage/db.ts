@@ -351,10 +351,15 @@ let activeIdbAdapter: IndexedDbStorageAdapter | null = null;
 let cachedIdbFactoryRef: IDBFactory | null = null;
 
 function getStorageAdapter(): StorageAdapter {
-  const idbFactory =
-    typeof globalThis !== "undefined" && "indexedDB" in globalThis
-      ? (globalThis.indexedDB as IDBFactory | undefined)
-      : undefined;
+  let idbFactory: IDBFactory | undefined;
+  try {
+    idbFactory =
+      typeof globalThis !== "undefined" && "indexedDB" in globalThis
+        ? (globalThis.indexedDB as IDBFactory | undefined)
+        : undefined;
+  } catch {
+    return memoryFallbackAdapter;
+  }
 
   if (!idbFactory || typeof idbFactory.open !== "function") {
     return memoryFallbackAdapter;

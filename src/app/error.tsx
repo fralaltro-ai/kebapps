@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, RotateCcw, Home, ChevronDown, ChevronUp, Bug } from "lucide-react";
+import {
+  attemptOneShotChunkRecovery,
+  isChunkOrSkewError,
+  triggerHardReload,
+} from "@/lib/chunk-error-recovery";
 
 export default function ErrorPage({
   error,
@@ -16,6 +21,9 @@ export default function ErrorPage({
   useEffect(() => {
     // Log unexpected errors for client monitoring
     console.error("[KebApps Global Error Boundary]:", error);
+    if (isChunkOrSkewError(error) && attemptOneShotChunkRecovery()) {
+      triggerHardReload();
+    }
   }, [error]);
 
   return (
@@ -42,7 +50,13 @@ export default function ErrorPage({
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
           <button
-            onClick={() => reset()}
+            onClick={() => {
+              if (isChunkOrSkewError(error)) {
+                triggerHardReload();
+                return;
+              }
+              reset();
+            }}
             className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground font-black text-xs uppercase tracking-widest py-3.5 px-5 rounded-xl shadow-flat transition-all flat-press hover:bg-primary/90"
           >
             <RotateCcw className="size-4" />

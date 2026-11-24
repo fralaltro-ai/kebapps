@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import WishlistClient from "@/app/wishlist/WishlistClient";
 import DiaryClient from "@/app/diary/DiaryClient";
 import { ToastProvider } from "@/context/ToastContext";
+import * as localDb from "@/lib/local-storage/db";
 import {
   resetLocalDbAdapterForTests,
   upsertWishlistEntry,
@@ -175,6 +176,24 @@ describe("WishlistClient & DiaryClient Compaction / Smoke", () => {
       fireEvent.click(clearBtn);
       expect(searchInput).toHaveValue("");
       expect(screen.getByText("Anatolia Express")).toBeInTheDocument();
+    });
+
+    it("recovers gracefully without unhandled error when local diary storage read fails", async () => {
+      const spy = vi.spyOn(localDb, "listDiaryEntries").mockRejectedValueOnce(new Error("IDB failure"));
+      try {
+        render(
+          <ToastProvider>
+            <DiaryClient />
+          </ToastProvider>
+        );
+
+        await waitFor(() => {
+          expect(screen.getByText("Il tuo Diario è ancora vuoto")).toBeInTheDocument();
+        });
+        expect(screen.getByText("Impossibile caricare il diario locale.")).toBeInTheDocument();
+      } finally {
+        spy.mockRestore();
+      }
     });
   });
 });

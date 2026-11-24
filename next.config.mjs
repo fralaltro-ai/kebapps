@@ -47,6 +47,18 @@ const nextConfig = {
                 { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
             ],
         },
+        {
+            source: '/',
+            headers: [
+                { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' },
+            ],
+        },
+        {
+            source: '/((?!_next/static|_next/image|api/|icons/|images/|avatars/|favicon\\.ico|logo\\.svg|manifest\\.json|sw\\.js|workbox-.*\\.js|worker-.*\\.js|fallback-.*\\.js|opengraph-image\\.png|apple-touch-icon\\.png).*)',
+            headers: [
+                { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' },
+            ],
+        },
     ],
     allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS
         ? process.env.ALLOWED_DEV_ORIGINS.split(',').map((o) => o.trim())
@@ -60,6 +72,7 @@ const withPWA = withPWAInit({
     skipWaiting: true,
     cacheStartUrl: false,
     dynamicStartUrl: false,
+    publicExcludes: ["!noprecache/**/*", "!_headers", "!_redirects"],
     customWorkerDir: "worker",
     fallbacks: {
         document: "/~offline",

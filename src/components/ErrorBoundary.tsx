@@ -1,6 +1,11 @@
 "use client";
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
+import {
+  attemptOneShotChunkRecovery,
+  isChunkOrSkewError,
+  triggerHardReload,
+} from "@/lib/chunk-error-recovery";
 
 interface Props {
   children: ReactNode;
@@ -8,19 +13,24 @@ interface Props {
 
 interface State {
   hasError: boolean;
+  error: Error | null;
 }
 
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
+    error: null,
   };
 
-  public static getDerivedStateFromError(): State {
-    return { hasError: true };
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught error:", error, errorInfo);
+    if (isChunkOrSkewError(error) && attemptOneShotChunkRecovery()) {
+      triggerHardReload();
+    }
   }
 
   public render() {
@@ -34,7 +44,13 @@ class ErrorBoundary extends Component<Props, State> {
             Si è verificato un errore imprevisto. Prova a ricaricare la pagina.
           </p>
           <button
-            onClick={() => this.setState({ hasError: false })}
+            onClick={() => {
+              if (isChunkOrSkewError(this.state.error)) {
+                triggerHardReload();
+                return;
+              }
+              this.setState({ hasError: false, error: null });
+            }}
             className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-2xl shadow-flat flat-press transition-all"
           >
             Riprova

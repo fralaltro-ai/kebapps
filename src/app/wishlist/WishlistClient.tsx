@@ -86,10 +86,12 @@ export default function WishlistClient() {
       ]);
       setItems(wishlistEntries);
       setDiaryMap(new Map(diaryEntries.map((d) => [d.place_id, d])));
+    } catch {
+      toastError("Impossibile caricare la wishlist locale.");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [toastError]);
 
   useEffect(() => {
     void loadData();

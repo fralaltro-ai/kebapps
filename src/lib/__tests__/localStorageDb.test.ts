@@ -476,4 +476,39 @@ describe("Local Storage DB (IndexedDB + Fallback + Schema)", () => {
       expect(await getMapCacheEntry("shop_b", { nowMs: t0 + 10_001 })).toBeNull();
     });
   });
+
+  describe("Restricted IndexedDB Fallback", () => {
+    it("falls back to memory adapter without throwing when globalThis.indexedDB getter throws SecurityError", async () => {
+      const originalDescriptor = Object.getOwnPropertyDescriptor(globalThis, "indexedDB");
+      Object.defineProperty(globalThis, "indexedDB", {
+        configurable: true,
+        get() {
+          throw new DOMException("Access denied", "SecurityError");
+        },
+      });
+
+      try {
+        expect(isUsingMemoryFallback()).toBe(true);
+        await expect(listDiaryEntries()).resolves.toEqual([]);
+        await upsertDiaryEntry({
+          place_id: "mem_fallback_1",
+          shop_label: "Fallback Kebap",
+          score_meat: 4,
+          score_bread: 4,
+          score_sauces: 4,
+          score_value: 4,
+        });
+        const entries = await listDiaryEntries();
+        expect(entries).toHaveLength(1);
+        expect(entries[0].shop_label).toBe("Fallback Kebap");
+      } finally {
+        if (originalDescriptor) {
+          Object.defineProperty(globalThis, "indexedDB", originalDescriptor);
+        } else {
+          delete (globalThis as Record<string, unknown>).indexedDB;
+        }
+        await resetLocalDbAdapterForTests();
+      }
+    });
+  });
 });

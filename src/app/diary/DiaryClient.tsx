@@ -82,10 +82,12 @@ function DiaryPageContent() {
     try {
       const list = await listDiaryEntries();
       setEntries(list);
+    } catch {
+      toastError("Impossibile caricare il diario locale.");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [toastError]);
 
   useEffect(() => {
     void loadDiary();
