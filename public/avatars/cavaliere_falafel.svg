@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <!-- Background Circle Soft Yellow/Amber -->
+  <circle cx="60" cy="60" r="56" fill="#FEFCE8" stroke="#FDE047" stroke-width="4" />
+  
+  <!-- Knight Shield (Golden Falafel Shape) behind -->
+  <rect x="74" y="28" width="22" height="28" rx="8" fill="#EAB308" stroke="#A16207" stroke-width="2.5" />
+  <circle cx="85" cy="42" r="3" fill="#FEF08A" />
+  
+  <!-- Face/Body (Golden Crispy Tone) -->
+  <circle cx="60" cy="66" r="32" fill="#FDE68A" stroke="#D97706" stroke-width="3.5" />
+  
+  <!-- Sesame Seeds (Crispy Falafel detail) -->
+  <ellipse cx="42" cy="74" rx="2" ry="1" fill="#92400E" transform="rotate(20 42 74)" />
+  <ellipse cx="78" cy="74" rx="2" ry="1" fill="#92400E" transform="rotate(-30 78 74)" />
+  <ellipse cx="60" cy="86" rx="2" ry="1" fill="#92400E" />
+  
+  <!-- Knight Helmet (Smussato) -->
+  <path d="M36 50 C36 30, 84 30, 84 50 Z" fill="#78716C" />
+  <rect x="34" y="46" width="52" height="10" rx="4" fill="#A8A29E" />
+  <rect x="46" y="52" width="28" height="4" rx="2" fill="#44403C" />
+  
+  <!-- Eyes -->
+  <circle cx="49" cy="66" r="3.5" fill="#431407" />
+  <circle cx="71" cy="66" r="3.5" fill="#431407" />
+  <circle cx="50.5" cy="64.5" r="1.2" fill="#FFFFFF" />
+  <circle cx="72.5" cy="64.5" r="1.2" fill="#FFFFFF" />
+  
+  <!-- Brave Smile -->
+  <path d="M52 79 Q60 85 68 79" fill="none" stroke="#431407" stroke-width="2.5" stroke-linecap="round" />
+</svg>

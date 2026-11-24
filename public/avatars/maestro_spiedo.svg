@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <!-- Background Circle Soft Cream/Peach -->
+  <circle cx="60" cy="60" r="56" fill="#FFF7ED" stroke="#FDBA74" stroke-width="4" />
+  
+  <!-- Spiedo Stick (behind) -->
+  <line x1="88" y1="18" x2="32" y2="102" stroke="#9A3412" stroke-width="4" stroke-linecap="round" />
+  <circle cx="90" cy="15" r="4" fill="#EA580C" />
+  
+  <!-- Face/Body (Warm Flat Smussato) -->
+  <circle cx="60" cy="66" r="32" fill="#FED7AA" stroke="#FB923C" stroke-width="3.5" />
+  
+  <!-- Chef Hat (Smussato Flat) -->
+  <path d="M42 42 C40 28, 52 22, 60 22 C68 22, 80 28, 78 42 Z" fill="#EA580C" />
+  <rect x="42" y="38" width="36" height="8" rx="4" fill="#C2410C" />
+  
+  <!-- Eyes -->
+  <circle cx="50" cy="64" r="3.5" fill="#431407" />
+  <circle cx="70" cy="64" r="3.5" fill="#431407" />
+  <circle cx="51.5" cy="62.5" r="1.2" fill="#FFFFFF" />
+  <circle cx="71.5" cy="62.5" r="1.2" fill="#FFFFFF" />
+  
+  <!-- Cheeks -->
+  <circle cx="43" cy="71" r="4" fill="#FDBA74" opacity="0.8" />
+  <circle cx="77" cy="71" r="4" fill="#FDBA74" opacity="0.8" />
+  
+  <!-- Mustache (Maestro Style) -->
+  <path d="M52 74 Q60 76 60 72 Q60 76 68 74 Q62 82 52 74 Z" fill="#9A3412" />
+  
+  <!-- Smile -->
+  <path d="M54 81 Q60 86 66 81" fill="none" stroke="#431407" stroke-width="2.5" stroke-linecap="round" />
+</svg>

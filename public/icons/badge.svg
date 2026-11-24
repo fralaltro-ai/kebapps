@@ -1,0 +1,8 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Skewer Stick -->
+  <path d="M24 40V8" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+  <!-- Pieces -->
+  <rect x="14" y="12" width="20" height="6" rx="2" fill="#FFFFFF"/>
+  <rect x="12" y="20" width="24" height="8" rx="2" fill="#FFFFFF"/>
+  <rect x="14" y="30" width="20" height="6" rx="2" fill="#FFFFFF"/>
+</svg>

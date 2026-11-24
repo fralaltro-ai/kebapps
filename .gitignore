@@ -1,0 +1,66 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+*.key
+*.crt
+*.p12
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# dotenv environment variable files
+.env
+.env.*
+!.env.example
+
+# Cloudflare/OpenNext Build
+.worker/
+.wrangler/
+.dev.vars
+.open-next/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# internal audit notes (kept out of public tracking)
+docs/REPORT_RISCHI_PROPRIETARIO.md
+
+# supabase
+supabase/.temp/*
+
+.tokensave/
+
+# PWA generated bundles
+public/sw.js
+public/workbox-*.js
+public/worker-*.js
+public/fallback-*.js
+public/sw.js.map
+public/workbox-*.js.map
+public/worker-*.js.map
+public/fallback-*.js.map
+
+# Playwright test artifacts
+/playwright-report/
+/test-results/

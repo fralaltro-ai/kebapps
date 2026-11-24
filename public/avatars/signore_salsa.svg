@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <!-- Background Circle Soft Red/Peach -->
+  <circle cx="60" cy="60" r="56" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="4" />
+  
+  <!-- Sauce Squeezer Bottle (behind) -->
+  <rect x="76" y="24" width="16" height="34" rx="6" fill="#EF4444" stroke="#B91C1C" stroke-width="2" />
+  <polygon points="84,14 80,24 88,24" fill="#FCA5A5" />
+  
+  <!-- Face/Body -->
+  <circle cx="60" cy="66" r="32" fill="#FED7AA" stroke="#FB923C" stroke-width="3.5" />
+  
+  <!-- Sauce Drop Crown (Spicy Splash) -->
+  <path d="M46 36 C42 42, 54 44, 60 30 C66 44, 78 42, 74 36 Z" fill="#EF4444" />
+  <circle cx="60" cy="24" r="3.5" fill="#DC2626" />
+  
+  <!-- Cool Sunglasses -->
+  <rect x="42" y="58" width="16" height="12" rx="4" fill="#1F2937" />
+  <rect x="62" y="58" width="16" height="12" rx="4" fill="#1F2937" />
+  <line x1="58" y1="62" x2="62" y2="62" stroke="#1F2937" stroke-width="3" />
+  <line x1="44" y1="61" x2="52" y2="61" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round" />
+  <line x1="64" y1="61" x2="72" y2="61" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round" />
+  
+  <!-- Cheeks -->
+  <circle cx="43" cy="74" r="4" fill="#FCA5A5" opacity="0.8" />
+  <circle cx="77" cy="74" r="4" fill="#FCA5A5" opacity="0.8" />
+  
+  <!-- Cool Smirk -->
+  <path d="M52 82 Q64 87 68 79" fill="none" stroke="#431407" stroke-width="2.5" stroke-linecap="round" />
+</svg>

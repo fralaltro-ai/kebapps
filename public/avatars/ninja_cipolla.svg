@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <!-- Background Circle Soft Violet -->
+  <circle cx="60" cy="60" r="56" fill="#FAF5FF" stroke="#D8B4FE" stroke-width="4" />
+  
+  <!-- Onion Sprout Head (Top Tip) -->
+  <path d="M60 16 Q68 28 60 36 Q52 28 60 16 Z" fill="#84CC16" />
+  
+  <!-- Face/Body (Onion Layered Shape) -->
+  <ellipse cx="60" cy="66" rx="34" ry="32" fill="#E9D5FF" stroke="#A855F7" stroke-width="3.5" />
+  
+  <!-- Ninja Headband -->
+  <rect x="28" y="50" width="64" height="15" rx="5" fill="#7E22CE" />
+  <circle cx="60" cy="57.5" r="4" fill="#D8B4FE" />
+  
+  <!-- Ninja Focus Eyes -->
+  <path d="M44 60 Q52 57 54 62" stroke="#1F2937" stroke-width="3" stroke-linecap="round" fill="none" />
+  <circle cx="50" cy="63" r="2" fill="#1F2937" />
+  <path d="M76 60 Q68 57 66 62" stroke="#1F2937" stroke-width="3" stroke-linecap="round" fill="none" />
+  <circle cx="70" cy="63" r="2" fill="#1F2937" />
+  
+  <!-- Ninja Mask / Lower Band -->
+  <path d="M38 72 C46 86, 74 86, 82 72 Z" fill="#9333EA" />
+  
+  <!-- Onion Ring Lines (Subtle) -->
+  <path d="M36 66 Q60 92 84 66" fill="none" stroke="#C084FC" stroke-width="2" opacity="0.6" />
+</svg>

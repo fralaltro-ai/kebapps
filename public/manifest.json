@@ -1,0 +1,48 @@
+{
+  "name": "KebApps",
+  "short_name": "KebApps",
+  "description": "Mappa interattiva per trovare locali che vendono kebab vicino a te, diario personale delle degustazioni e wishlist kebab 100% local-first.",
+  "lang": "it",
+  "dir": "ltr",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "categories": [
+    "food",
+    "navigation",
+    "lifestyle"
+  ],
+  "background_color": "#ffffff",
+  "theme_color": "#ea580c",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "icons": [
+    {
+      "src": "/icons/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

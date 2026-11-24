@@ -1,0 +1,381 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .font-quicksand {
+    font-family: 'Quicksand', sans-serif;
+  }
+
+  /* Standard scrollable inner container: keeps native touch scrolling,
+     contains rubber-band bounce to itself instead of the page frame. */
+  .app-scroll {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@layer base {
+  :root {
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --dock-h: 4rem;
+    --dock-gap: 1rem;
+    --dock-space: calc(var(--dock-h) + var(--dock-gap) * 2 + var(--safe-b));
+    --background: 32 100% 97%;
+    /* Warm Cream */
+    --foreground: 20 20% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 20% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 20% 20%;
+    --primary: 24.6 95% 48.2%; /* orange-600 (#ea580c) */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 45 90% 90%;
+    /* Soft Mustard Light */
+    --secondary-foreground: 45 90% 20%;
+    --muted: 45 30% 95%;
+    --muted-foreground: 20 10% 40%;
+    --accent: 140 70% 90%;
+    /* Soft Mint Light */
+    --accent-foreground: 140 70% 20%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 32 30% 90%;
+    --input: 32 30% 90%;
+    --ring: 24.6 95% 48.2%;
+    --radius: 1rem;
+    /* Softer edges */
+    --peach: 28 100% 86%;
+    --peach-foreground: 16 20% 29%;
+    --mustard: 47 90% 57%;
+    --mustard-foreground: 44 100% 13%;
+    --mint: 120 93% 79%;
+    --mint-foreground: 120 71% 18%;
+    --cream: 56 100% 91%;
+    --cream-foreground: 16 20% 29%;
+    --gps-dot: 217 91% 60%;
+    --gps-ring: 213 94% 68%;
+    --gps-beam: 212 96% 78%;
+  }
+
+  .dark {
+    /* === Palette Dark "Flat-Smussato Notturno" === */
+    --background: 20 15% 10%;          /* Charcoal caldo */
+    --foreground: 30 10% 90%;          /* Crema chiaro */
+    --card: 20 12% 14%;                /* Surface card */
+    --card-foreground: 30 10% 90%;
+    --popover: 20 12% 14%;
+    --popover-foreground: 30 10% 90%;
+    --primary: 24.6 95% 48.2%;         /* orange-600 (#ea580c) */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 45 40% 20%;           /* Mustard scuro */
+    --secondary-foreground: 45 80% 85%;
+    --muted: 20 10% 18%;               /* Superficie muted */
+    --muted-foreground: 20 10% 65%;
+    --accent: 140 30% 18%;             /* Mint scuro */
+    --accent-foreground: 140 50% 80%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 10% 22%;              /* Bordo sottile */
+    --input: 20 10% 22%;
+    --ring: 24.6 95% 48.2%;
+
+    --peach: 28 50% 25%;
+    --peach-foreground: 28 80% 85%;
+    --mustard: 47 50% 22%;
+    --mustard-foreground: 47 80% 85%;
+    --mint: 120 30% 20%;
+    --mint-foreground: 120 50% 80%;
+    --cream: 56 20% 15%;
+    --cream-foreground: 56 80% 85%;
+    --gps-dot: 217 91% 60%;
+    --gps-ring: 213 94% 68%;
+    --gps-beam: 212 96% 78%;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    min-height: 100%;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground font-quicksand antialiased;
+    background-color: hsl(var(--background));
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100svh;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+  }
+
+  /* IMPORTANT: no touch-action override for the map subtree.
+     Google Maps sets its own restrictive touch-action on its internal
+     gesture surface (gestureHandling: "greedy" -> touch-action: none) to
+     claim pan/pinch itself. Forcing touch-action: auto on [data-map-container]
+     or .gm-style descendants (as a previous revision did) intersects with
+     that ancestor value and effectively re-opens native browser panning on
+     top of the map, which scrolls/rubber-bands the whole document frame
+     instead of just the map canvas. body's `manipulation` already permits
+     pan/pinch (it only blocks double-tap zoom), so the map never needed a
+     carve-out. Route-level scroll locking lives in .route-locked below. */
+
+  /* Applied imperatively (see src/app/map/page.tsx) to the routes whose
+     canvas must never let a touch gesture scroll/bounce the document frame. */
+  html.route-locked,
+  html.route-locked body {
+    overflow: hidden;
+    height: 100%;
+    overscroll-behavior: none;
+  }
+  html.route-locked .app-shell-scroll {
+    overflow: hidden;
+    height: 100%;
+  }
+
+  /* Standalone PWA shell: lock the root document so iOS/Android never scroll
+     the native UIScrollView or render system scrollbars; delegate scrolling
+     to .app-shell-scroll and apply native app touch/selection behavior. */
+  @media (display-mode: standalone) {
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    body {
+      -webkit-touch-callout: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    img,
+    a {
+      -webkit-user-drag: none;
+    }
+
+    input,
+    textarea,
+    [contenteditable="true"],
+    .prose,
+    .prose *,
+    code,
+    pre {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .app-shell-scroll {
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+
+    .app-shell-scroll::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+  }
+
+  html.pwa-standalone,
+  html.pwa-standalone body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  html.pwa-standalone body {
+    -webkit-touch-callout: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  html.pwa-standalone img,
+  html.pwa-standalone a {
+    -webkit-user-drag: none;
+  }
+
+  html.pwa-standalone input,
+  html.pwa-standalone textarea,
+  html.pwa-standalone [contenteditable="true"],
+  html.pwa-standalone .prose,
+  html.pwa-standalone .prose *,
+  html.pwa-standalone code,
+  html.pwa-standalone pre {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+
+  html.pwa-standalone .app-shell-scroll {
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  html.pwa-standalone .app-shell-scroll::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  @media (min-width: 640px) {
+    body {
+      font-size: 18px;
+    }
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-black tracking-tight leading-tight;
+  }
+
+  /* Flat-Press Utilities */
+  .flat-press {
+    @apply transition-all duration-100 active:translate-y-[1px] hover:brightness-95;
+  }
+
+  .flat-press-icon {
+    @apply transition-all duration-100 active:scale-95;
+  }
+
+  /* --- Premium Map InfoWindow Overrides --- */
+  /* Strip all Google default styling to prevent overflow */
+  .gm-style-iw {
+    border-radius: 16px !important;
+    padding: 0 !important;
+    border: none !important;
+    outline: none !important;
+  }
+
+  .gm-style-iw-c {
+    background-color: #171717 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.45) !important;
+    max-height: none !important;
+    max-width: min(calc(100vw - 48px), 300px) !important;
+    width: auto !important;
+    border-radius: 16px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .gm-style-iw-d {
+    overflow: hidden !important;
+    overflow-y: auto !important;
+    padding: 0 !important;
+    max-height: none !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Kill the outer white border/background wrapper Google adds */
+  .gm-style .gm-style-iw-t::after {
+    background: #171717 !important;
+    box-shadow: none !important;
+  }
+
+  .gm-ui-hover-effect {
+    top: 6px !important;
+    right: 6px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50% !important;
+    width: 28px !important;
+    height: 28px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 1000 !important;
+    opacity: 0.7 !important;
+    transition: opacity 0.2s !important;
+  }
+
+  .gm-ui-hover-effect:hover {
+    opacity: 1 !important;
+  }
+
+  .gm-ui-hover-effect img,
+  .gm-ui-hover-effect span {
+    filter: invert(1) brightness(10) !important;
+    margin: 0 !important;
+  }
+
+  .gm-style-iw-tc::after {
+    background: #171717 !important;
+  }
+
+  /* Strip any rogue outer border from the Google wrapper */
+  .gm-style-iw-chr {
+    max-width: 100% !important;
+  }
+
+}
+
+/* === Zero Scrollbar Visibility (global, cross-browser) ===
+   Scrolling/dragging stays fully functional everywhere; only the
+   scrollbar's rendering is suppressed. Kept outside @layer so no
+   Tailwind utility can override it via cascade ordering. */
+html,
+body,
+* {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* Legacy Edge/IE */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important; /* WebKit/Blink */
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+/* Legal docs: tabelle scrollabili lateralmente entro i bordi della card */
+.legal-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  margin: 1.5rem 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+}
+
+.legal-table-wrap > table {
+  margin: 0;
+  min-width: 34rem;
+  border: 0;
+}
