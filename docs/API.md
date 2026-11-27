@@ -1,6 +1,6 @@
 # KebApps Local — API Reference & External Services Policy (v2.0)
 
-Questo documento descrive esclusivamente gli endpoint API esistenti in `kebapps-local` (**2 proxy HTTP `GET` stateless** senza persistenza server-side) e l'interfaccia di archiviazione client-side che ha sostituito database e Server Actions.
+Questo documento descrive esclusivamente gli endpoint API esistenti in `kebapps-local` (**3 proxy HTTP `GET` stateless** senza persistenza server-side) e l'interfaccia di archiviazione client-side che ha sostituito database e Server Actions.
 
 ---
 
@@ -52,6 +52,14 @@ Proxy stateless verso Google Geocoding API (tier Essentials) per spostare la map
 - **Parametri Query:** `q` (trim, min 2 caratteri, troncata a max 200 caratteri; se `< 2` ritorna `{ results: [] }`).
 - **Modalità Kill Switch:** ritorna `{ results: GeocodeProxyResult[], source: "paid_apis_disabled" }` filtrando `LOCAL_DEV_GEOCODE_FIXTURES`.
 - **Modalità Live:** chiama `https://maps.googleapis.com/maps/api/geocode/json` con timeout `5000 ms`, restituisce al massimo `1` match ridotto a `{ place_id, display_name: null, lat, lon, city: null, country: null, data_source: "google" }` con header `Cache-Control: no-store, max-age=0`.
+
+### 2.3 `GET /api/support-contact` (`src/app/api/support-contact/route.ts`)
+Endpoint stateless per rivelare il recapito email di assistenza esclusivamente dopo verifica visibile Cloudflare Turnstile (*Managed*) attivata su richiesta dall'utente, evitando l'esposizione statica in chiaro nel bundle JavaScript o nell'HTML.
+
+- **Rate Limit:** `5` richieste / `60s` per IP (`ratelimit_support_contact`).
+- **Turnstile Action:** `support_contact` (header `x-turnstile-token` o query `turnstileToken`, obbligatorio; validato con `TURNSTILE_SUPPORT_SECRET_KEY`; `403` se invalido).
+- **Modalità Live:** restituisce `{ email, subject, source: "live" }` leggendo la variabile server-only `SUPPORT_EMAIL` con header `Cache-Control: no-store, max-age=0` (`503` fail-closed in produzione se `SUPPORT_EMAIL` manca o non è valida).
+- **Modalità Dev (`NODE_ENV !== "production"`):** restituisce `SUPPORT_EMAIL` (o fallback locale sicuro) come `{ email, subject, source: "dev_fallback" }`.
 
 ---
 

@@ -93,4 +93,36 @@ describe('validateTurnstileToken', () => {
     expect(result).toBe(true);
     vi.unstubAllEnvs();
   });
+
+  it('supports dedicated secretKey / secretEnvName options and rejects dummy secrets in production', async () => {
+    (global.fetch as unknown as { mockResolvedValue: (v: unknown) => void }).mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, action: 'support_contact' }),
+    });
+
+    const ok = await validateTurnstileToken('visible-token', '1.2.3.4', 'support_contact', {
+      secretKey: 'custom-support-secret',
+      secretEnvName: 'TURNSTILE_SUPPORT_SECRET_KEY',
+    });
+    expect(ok).toBe(true);
+
+    const fetchCall = (global.fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls[0];
+    const formBody = (fetchCall[1] as { body: FormData }).body;
+    expect(formBody.get('secret')).toBe('custom-support-secret');
+
+    vi.stubEnv('NODE_ENV', 'production');
+    await expect(
+      validateTurnstileToken('visible-token', '1.2.3.4', 'support_contact', {
+        secretKey: '',
+        secretEnvName: 'TURNSTILE_SUPPORT_SECRET_KEY',
+      })
+    ).rejects.toThrow('TURNSTILE_SUPPORT_SECRET_KEY is required in production environment.');
+
+    const dummyRejected = await validateTurnstileToken('token', '1.2.3.4', 'support_contact', {
+      secretKey: '3x0000000000000000000000000000000AA',
+      secretEnvName: 'TURNSTILE_SUPPORT_SECRET_KEY',
+    });
+    expect(dummyRejected).toBe(false);
+    vi.unstubAllEnvs();
+  });
 });

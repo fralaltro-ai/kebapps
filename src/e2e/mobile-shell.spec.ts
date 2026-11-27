@@ -14,7 +14,7 @@ test.describe('Mobile/PWA Shell Hardening: Scrollbars, Dock Anchoring, Zoom/Over
           'kebapp_maps_consent',
           JSON.stringify({
             status: 'granted',
-            policyVersion: '2.5',
+            policyVersion: '2.6',
             updatedAt: Date.now(),
             expiresAt: Date.now() + 180 * 24 * 60 * 60 * 1000,
           })
@@ -23,7 +23,7 @@ test.describe('Mobile/PWA Shell Hardening: Scrollbars, Dock Anchoring, Zoom/Over
           'kebapp_gps_consent',
           JSON.stringify({
             status: 'denied',
-            policyVersion: '2.5',
+            policyVersion: '2.6',
             updatedAt: Date.now(),
             expiresAt: Date.now() + 180 * 24 * 60 * 60 * 1000,
           })

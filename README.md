@@ -88,7 +88,7 @@ Prima di attivare le API live:
 
 #### Passo 4 — Configura Cloudflare Turnstile
 - **Solo su `localhost` per sviluppo:** puoi lasciare le chiavi di test ufficiali Cloudflare già presenti in `.env.example` (`1x00000000000000000000AA` / `1x0000000000000000000000000000000AA`).
-- **Per un'istanza pubblica online (`NODE_ENV=production`):** le chiavi dummy vengono bloccate automaticamente (`fail-closed`). Crea un widget **Turnstile Invisible** dalla [Cloudflare Dashboard](https://dash.cloudflare.com/) inserendo il tuo dominio negli *Hostname* autorizzati.
+- **Per un'istanza pubblica online (`NODE_ENV=production`):** le chiavi dummy vengono bloccate automaticamente (`fail-closed`). Crea dalla [Cloudflare Dashboard](https://dash.cloudflare.com/) un widget **Turnstile Invisible** per la mappa e un widget **Turnstile Managed** dedicato per lo sblocco anti-spam del contatto supporto, inserendo il tuo dominio negli *Hostname* autorizzati.
 
 #### Passo 5 — Aggiorna `.env.local` e riavvia
 
@@ -101,11 +101,14 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="AIzaSy...tua-chiave-frontend..."
 NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID="DEMO_MAP_ID"
 GOOGLE_PLACES_BACKEND_KEY="AIzaSy...tua-chiave-backend..."
 
-NEXT_PUBLIC_TURNSTILE_SITE_KEY="0x4AAAAAAA...tua-site-key..."
-TURNSTILE_SECRET_KEY="0x4AAAAAAA...tua-secret-key..."
+NEXT_PUBLIC_TURNSTILE_SITE_KEY="0x4AAAAAAA...site-key-invisible..."
+TURNSTILE_SECRET_KEY="0x4AAAAAAA...secret-key-invisible..."
+
+NEXT_PUBLIC_TURNSTILE_SUPPORT_SITE_KEY="0x4AAAAAAA...site-key-managed-supporto..."
+TURNSTILE_SUPPORT_SECRET_KEY="0x4AAAAAAA...secret-key-managed-supporto..."
 
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
-NEXT_PUBLIC_SUPPORT_EMAIL="support@kebapps.app"
+SUPPORT_EMAIL="support@kebapps.app"
 NEXT_PUBLIC_DATA_CONTROLLER_NAME=""
 NEXT_PUBLIC_DATA_CONTROLLER_LOCATION="Italia"
 NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=""
@@ -148,7 +151,7 @@ Per pubblicare l'app online su un dominio pubblico riducendo al minimo le superf
   - Scadenza automatica a 30 giorni (`GOOGLE_COORDS_TTL_MS`) per coordinate Google in `diary` e `wishlist`, con validazione Zod `.strict()` ed export/import **Backup JSON** (*replace* / *merge*, con **esclusione di `map_cache` e delle coordinate Google**).
 - **Proxy Stateless Edge (`src/app/api/`):**
   - Zero database server-side, zero autenticazione, zero Server Actions.
-  - Due sole route `GET` in sola lettura (`/api/shops`, `/api/geocode-search`) con `Cache-Control: no-store, max-age=0`, protette da **Cloudflare Turnstile** (`validateTurnstileToken` fail-closed) e rate limiting in-memory per IP.
+  - Tre sole route `GET` in sola lettura (`/api/shops`, `/api/geocode-search`, `/api/support-contact`) con `Cache-Control: no-store, max-age=0`, protette da **Cloudflare Turnstile** (`validateTurnstileToken` fail-closed) e rate limiting in-memory per IP.
 - **Politica Zero-Cost, Sensori & Google Maps EEA:**
   - Blocco preventivo di Google Maps SDK, Places UI Kit e Turnstile tramite `<MapConsentGate />` su `/map` (consenso versionato a TTL 180 giorni, nessun consenso salvato in Zero-Cost, scorciatoia revoca 1-tap con icona scudo), e sensori bussola/GPS (`useCompass` + `watchPosition`) vincolati a `hasGpsConsent()` con pulizia `sessionStorage` alla revoca.
   - `<GoogleAttribution />` (`google_on_white.png` / `google_on_dark.png`) visibile sulle schede mappa live (assente su demo locale `ZeroCostLocalMapView`) e `<AppFooter />` / `<ControllerIdentityNotice />` per l'accesso immediato a informative e dati del Titolare.
@@ -161,7 +164,7 @@ Per pubblicare l'app online su un dominio pubblico riducendo al minimo le superf
 
 ### Architettura, Design & Funzionamento
 - [**Funzionamento Core**](docs/FUNZIONAMENTO.md) — Mappa con consenso, Discovery euristica, calcoli Haversine, Diario, Wishlist, Gamification e Backup JSON.
-- [**API Reference**](docs/API.md) — Documentazione dei 2 proxy stateless (`GET /api/shops`, `GET /api/geocode-search`) e policy Zero-Cost.
+- [**API Reference**](docs/API.md) — Documentazione dei 3 proxy stateless (`GET /api/shops`, `GET /api/geocode-search`, `GET /api/support-contact`) e policy Zero-Cost.
 - [**Design System Flat-Smussato 2D**](DESIGN.md) — Token cromatici, tipografia *Quicksand*, Dark Mode e stati pin personali.
 - [**Engineering Context (GEMINI.md)**](GEMINI.md) · [**Engineering Reference (CLAUDE.md)**](CLAUDE.md)
 

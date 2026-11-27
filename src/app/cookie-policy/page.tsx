@@ -35,7 +35,7 @@ export default function CookiePolicyPage() {
           </div>
           <div>
             <h1 className="text-2xl font-black text-foreground font-quicksand leading-tight">Cookie Policy</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Ultimo aggiornamento: 24 Novembre 2026</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Ultimo aggiornamento: 27 Novembre 2026</p>
           </div>
         </div>
 

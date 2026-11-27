@@ -6,6 +6,11 @@ import { useTurnstile } from "@/hooks/useTurnstile";
 describe("useTurnstile", () => {
   let latestExecute: (() => Promise<string>) | null = null;
   let capturedOptions: {
+    sitekey?: string;
+    size?: string;
+    theme?: string;
+    execution?: string;
+    appearance?: string;
     callback?: (token: string) => void;
     "error-callback"?: () => void;
     "expired-callback"?: () => void;
@@ -132,5 +137,62 @@ describe("useTurnstile", () => {
     expect(mockReset).toHaveBeenCalledTimes(1);
     expect(mockReset).toHaveBeenCalledWith("widget-1");
     expect(mockExecute).not.toHaveBeenCalled();
+  });
+
+  it("supports custom siteKey, flexible size, and render-mode verify/expire/error callbacks", async () => {
+    const onVerify = vi.fn();
+    const onExpire = vi.fn();
+    const onError = vi.fn();
+
+    function VisibleHarness() {
+      const { containerRef } = useTurnstile({
+        action: "support_contact",
+        siteKey: "custom-visible-site-key",
+        size: "flexible",
+        theme: "dark",
+        execution: "render",
+        appearance: "always",
+        onVerify,
+        onExpire,
+        onError,
+      });
+      return <div ref={containerRef} />;
+    }
+
+    render(<VisibleHarness />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockRender).toHaveBeenCalledTimes(1);
+    expect(capturedOptions).toMatchObject({
+      sitekey: "custom-visible-site-key",
+      size: "flexible",
+      theme: "dark",
+      execution: "render",
+      appearance: "always",
+    });
+
+    act(() => {
+      capturedOptions?.callback?.("visible-token");
+    });
+    expect(onVerify).toHaveBeenCalledWith("visible-token");
+
+    act(() => {
+      capturedOptions?.["expired-callback"]?.();
+    });
+    expect(onExpire).toHaveBeenCalledTimes(1);
+    expect(mockReset).toHaveBeenCalledWith("widget-1");
+
+    // First error performs one transparent reset; second error invokes onError.
+    act(() => {
+      capturedOptions?.["error-callback"]?.();
+    });
+    expect(onError).not.toHaveBeenCalled();
+
+    act(() => {
+      capturedOptions?.["error-callback"]?.();
+    });
+    expect(onError).toHaveBeenCalledTimes(1);
   });
 });

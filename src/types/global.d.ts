@@ -3,9 +3,10 @@ import React from 'react';
 interface TurnstileRenderOptions {
   sitekey: string;
   action?: string;
-  size?: "normal" | "compact" | "invisible";
+  size?: "normal" | "compact" | "flexible" | "invisible";
   theme?: "auto" | "light" | "dark";
   execution?: "render" | "execute";
+  appearance?: "always" | "execute" | "interaction-only";
   "refresh-expired"?: "auto" | "manual" | "never";
   callback?: (token: string) => void;
   "error-callback"?: (errorCode?: string) => void;

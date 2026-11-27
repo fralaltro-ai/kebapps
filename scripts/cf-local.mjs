@@ -42,10 +42,21 @@ const base = parseEnvFile(fs.readFileSync(envPath, "utf-8"));
 const dedicatedTurnstile = Boolean(base.LOCAL_TURNSTILE_SITE_KEY && base.LOCAL_TURNSTILE_SECRET_KEY);
 const localSiteKey = base.LOCAL_TURNSTILE_SITE_KEY || base.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 const localSecret = base.LOCAL_TURNSTILE_SECRET_KEY || base.TURNSTILE_SECRET_KEY || "";
+const dedicatedSupportTurnstile = Boolean(
+  base.LOCAL_TURNSTILE_SUPPORT_SITE_KEY && base.LOCAL_TURNSTILE_SUPPORT_SECRET_KEY
+);
+const localSupportSiteKey =
+  base.LOCAL_TURNSTILE_SUPPORT_SITE_KEY || base.NEXT_PUBLIC_TURNSTILE_SUPPORT_SITE_KEY || "";
+const localSupportSecret =
+  base.LOCAL_TURNSTILE_SUPPORT_SECRET_KEY || base.TURNSTILE_SUPPORT_SECRET_KEY || "";
+const localSupportEmail =
+  base.SUPPORT_EMAIL || base.NEXT_PUBLIC_SUPPORT_EMAIL || "support@kebapps.app";
 
 const vars = { ...base };
 delete vars.LOCAL_TURNSTILE_SITE_KEY;
 delete vars.LOCAL_TURNSTILE_SECRET_KEY;
+delete vars.LOCAL_TURNSTILE_SUPPORT_SITE_KEY;
+delete vars.LOCAL_TURNSTILE_SUPPORT_SECRET_KEY;
 
 Object.assign(vars, {
   NEXT_PUBLIC_DISABLE_PAID_APIS: vars.NEXT_PUBLIC_DISABLE_PAID_APIS ?? "1",
@@ -53,6 +64,9 @@ Object.assign(vars, {
   NEXT_PUBLIC_SITE_URL: LOCAL_URL,
   TURNSTILE_SECRET_KEY: localSecret,
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: localSiteKey,
+  TURNSTILE_SUPPORT_SECRET_KEY: localSupportSecret,
+  NEXT_PUBLIC_TURNSTILE_SUPPORT_SITE_KEY: localSupportSiteKey,
+  SUPPORT_EMAIL: localSupportEmail,
 });
 
 const command = process.argv[2] || "vars";
@@ -78,11 +92,17 @@ function writeDevVars() {
       vars.NEXT_PUBLIC_DISABLE_PAID_APIS
   );
   console.log(
-    "   Turnstile: " +
+    "   Turnstile mappa: " +
       (!localSiteKey || !localSecret
         ? "chiavi assenti"
         : dedicatedTurnstile
           ? "widget dedicato (LOCAL_TURNSTILE_*)"
+          : "chiavi di .env.local") +
+      " | Turnstile supporto: " +
+      (!localSupportSiteKey || !localSupportSecret
+        ? "chiavi assenti"
+        : dedicatedSupportTurnstile
+          ? "widget dedicato (LOCAL_TURNSTILE_SUPPORT_*)"
           : "chiavi di .env.local")
   );
 }
@@ -103,6 +123,7 @@ if (command === "vars") {
       NEXT_PUBLIC_DISABLE_PAID_APIS: vars.NEXT_PUBLIC_DISABLE_PAID_APIS,
       NEXT_PUBLIC_SITE_URL: LOCAL_URL,
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: localSiteKey,
+      NEXT_PUBLIC_TURNSTILE_SUPPORT_SITE_KEY: localSupportSiteKey,
     },
   });
   if (res.status !== 0) process.exit(res.status ?? 1);

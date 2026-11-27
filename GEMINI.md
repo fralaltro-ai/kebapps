@@ -41,7 +41,7 @@ Questo documento è la fonte di verità tecnica per chi sviluppa o assiste sul r
 
 ## 3. Proxy API Stateless & Sicurezza (`src/app/api/`)
 
-Il backend espone **esclusivamente 2 endpoint `GET` stateless** (nessuna mutazione `POST`/`PUT`/`DELETE`, nessuna Server Action, nessuna persistenza server):
+Il backend espone **esclusivamente 3 endpoint `GET` stateless** (nessuna mutazione `POST`/`PUT`/`DELETE`, nessuna Server Action, nessuna persistenza server):
 1. `GET /api/shops` (`src/app/api/shops/route.ts`):
    - Rate limit in-memory per IP: `30 req / 60s` (`checkRateLimitFallback`).
    - Verifica Turnstile obbligatoria (`validateTurnstileToken`, action `shops_search`).
@@ -51,6 +51,9 @@ Il backend espone **esclusivamente 2 endpoint `GET` stateless** (nessuna mutazio
 2. `GET /api/geocode-search` (`src/app/api/geocode-search/route.ts`):
    - Rate limit `10 req / 10s`, Turnstile action `geocode_search`, query `2..200` char.
    - Interroga Google Geocoding API (in modalità live restituisce al massimo `1` risultato ridotto a `place_id`, `lat`, `lon` con campi testuali `null` e header `Cache-Control: no-store, max-age=0`) o restituisce `LOCAL_DEV_GEOCODE_FIXTURES` se `paidApisDisabled()`.
+3. `GET /api/support-contact` (`src/app/api/support-contact/route.ts`):
+   - Rate limit `5 req / 60s`, Turnstile action `support_contact` su widget dedicato *Managed* (`TURNSTILE_SUPPORT_SECRET_KEY`).
+   - Sblocca on-demand il recapito server-only `SUPPORT_EMAIL` senza esporlo staticamente nei bundle client (`Cache-Control: no-store, max-age=0`).
 
 Nessun file `middleware.ts` / `proxy.ts` è presente: l'app è 100% stateless e priva di sessioni o redirect di autenticazione.
 
@@ -76,7 +79,7 @@ Nessun file `middleware.ts` / `proxy.ts` è presente: l'app è 100% stateless e 
 1. **NO SKU Enterprise/Atmosphere & EEA "No Use With any Map":** `PLACES_BASIC_FIELD_MASK` può richiedere esclusivamente `places.id,places.location` (zero `types`). È vietato richiedere `displayName`, `formattedAddress`, `addressComponents`, `reviews`, `photos`, `rating`, `userRatingCount`, `openingHours` o `priceLevel` via server proxy. I dettagli luogo visivi su `/map` usano solo il widget Google **Places UI Kit** (`GooglePlaceDetailsWidget.tsx`) esentato EEA. In produzione `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` non può essere `"DEMO_MAP_ID"`.
 2. **Ricerca On-Submit Only:** vietato introdurre autocomplete lettera-per-lettera su mappa o barra di ricerca.
 3. **Kill Switch in Sviluppo e Test:** mantenere `NEXT_PUBLIC_DISABLE_PAID_APIS=1` e `DISABLE_PAID_APIS=1` in `.env.local` per evitare addebiti accidentali.
-4. **Consenso Preventivo, Sensori & Attribuzione:** mappa e Turnstile devono restare dietro `<MapConsentGate />` (consensi versionati TTL 180gg, scorciatoia scudo revoca su `/map`); `useCompass` (`deviceorientation`) e `watchPosition` devono essere vincolati a `hasGpsConsent()` con pulizia `sessionStorage` alla revoca; `<GoogleAttribution />` (`google_on_white.png` / `google_on_dark.png`) deve essere visibile su `ShopInfoCard`, `UnverifiedShopCard` e `RoutingPanel` (mai su `ZeroCostLocalMapView`); le richieste cross-origin del Service Worker devono restare `NetworkOnly`.
+4. **Consenso Preventivo, Sensori & Attribuzione:** mappa e Turnstile mappa devono restare dietro `<MapConsentGate />` (consensi versionati TTL 180gg, scorciatoia scudo revoca su `/map`), mentre la verifica Turnstile del contatto supporto (`<SupportEmailGate />`) deve caricare lo script esterno rigorosamente on-demand solo dopo clic esplicito dell'utente; `useCompass` (`deviceorientation`) e `watchPosition` devono essere vincolati a `hasGpsConsent()` con pulizia `sessionStorage` alla revoca; `<GoogleAttribution />` (`google_on_white.png` / `google_on_dark.png`) deve essere visibile su `ShopInfoCard`, `UnverifiedShopCard` e `RoutingPanel` (mai su `ZeroCostLocalMapView`); le richieste cross-origin del Service Worker devono restare `NetworkOnly`.
 5. **Cache Effimera & Scadenza Coordinate (`<= 24h` / `<= 30gg`):** `map_cache` (solo `place_id` + coordinate) ha TTL massimo `24h` (`MAP_CACHE_TTL_MS`); le coordinate derivate da Google in `diary`/`wishlist` scadono automaticamente dopo `30 giorni` (`GOOGLE_COORDS_TTL_MS`) e vengono sempre rimosse in `exportBackupData`.
 6. **Zero Dati Server-Side & Identità Titolare Pubblica:** non introdurre database, cookie di sessione, analytics o invio di coordinate GPS utente verso endpoint proprietari; in deploy pubblico è obbligatorio configurare `NEXT_PUBLIC_DATA_CONTROLLER_NAME` e `NEXT_PUBLIC_DATA_CONTROLLER_LOCATION` (verificati da `scripts/cf-deploy-guard.mjs`), rendendo sempre raggiungibili `<AppFooter />` e `<ControllerIdentityNotice />`.
 

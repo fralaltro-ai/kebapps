@@ -130,6 +130,7 @@ function readUtf8(relPath) {
   const expectedApiFiles = [
     "src/app/api/geocode-search/route.ts",
     "src/app/api/shops/route.ts",
+    "src/app/api/support-contact/route.ts",
   ];
   const issues = [];
 
@@ -165,7 +166,7 @@ function readUtf8(relPath) {
     record(
       "stateless_readonly_api_proxies",
       true,
-      "2 GET-only Turnstile-protected proxies, zero Server Actions"
+      "3 GET-only Turnstile-protected proxies, zero Server Actions"
     );
   }
 })();
@@ -458,6 +459,18 @@ function readUtf8(relPath) {
       issues.push(`${pagePath} missing <ControllerIdentityNotice />`);
     }
   }
+  for (const supportSurface of [
+    "src/components/profile/ProfileInfoSection.tsx",
+    "src/components/legal/ControllerIdentityNotice.tsx",
+  ]) {
+    const src = readUtf8(supportSurface);
+    if (!src.includes("SupportEmailGate")) {
+      issues.push(`${supportSurface} missing <SupportEmailGate /> anti-bot guard`);
+    }
+    if (/mailto:|NEXT_PUBLIC_SUPPORT_EMAIL/.test(src)) {
+      issues.push(`${supportSurface} exposes static mailto: or NEXT_PUBLIC_SUPPORT_EMAIL`);
+    }
+  }
 
   if (issues.length > 0) {
     record("consent_and_transparency_guards", false, issues.join("; "));
@@ -465,7 +478,7 @@ function readUtf8(relPath) {
     record(
       "consent_and_transparency_guards",
       true,
-      "Compass consent gate, AppFooter, cross-origin SW NetworkOnly, and ControllerIdentityNotice verified"
+      "Compass consent gate, AppFooter, cross-origin SW NetworkOnly, ControllerIdentityNotice, and SupportEmailGate verified"
     );
   }
 })();

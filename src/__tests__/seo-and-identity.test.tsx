@@ -143,7 +143,7 @@ describe("SEO, Sitemap, Robots & Public Identity", () => {
     }
   });
 
-  test("ProfileInfoPage SSR exposes back-to-profile and legal documentation links", () => {
+  test("ProfileInfoPage SSR exposes back-to-profile and legal links without plaintext support email", () => {
     const { container } = render(<ProfileInfoPage />);
     const hrefs = Array.from(container.querySelectorAll("a")).map((a) =>
       a.getAttribute("href")
@@ -151,6 +151,9 @@ describe("SEO, Sitemap, Robots & Public Identity", () => {
     for (const route of ["/profile", "/privacy-policy", "/cookie-policy", "/terms"]) {
       expect(hrefs).toContain(route);
     }
+    expect(hrefs.some((h) => h?.startsWith("mailto:"))).toBe(false);
+    expect(container.textContent).not.toContain("support@kebapps.app");
+    expect(container.querySelector('[data-testid="support-unlock-trigger"]')).not.toBeNull();
   });
 
   test("personal emails and env var placeholders are excluded from public identity files and legal docs", () => {
@@ -177,6 +180,7 @@ describe("SEO, Sitemap, Robots & Public Identity", () => {
     ]) {
       const legalContent = fs.readFileSync(path.join(ROOT, legalRel), "utf8");
       expect(legalContent).not.toContain("NEXT_PUBLIC_DATA_CONTROLLER_NAME");
+      expect(legalContent).not.toContain("support@kebapps.app");
     }
 
     const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
@@ -223,11 +227,13 @@ describe("SEO, Sitemap, Robots & Public Identity", () => {
     expect(container.querySelector("footer")).toBeNull();
   });
 
-  test("PrivacyPolicyPage renders ControllerIdentityNotice with configured NEXT_PUBLIC_DATA_CONTROLLER_NAME", () => {
+  test("PrivacyPolicyPage renders ControllerIdentityNotice with configured NEXT_PUBLIC_DATA_CONTROLLER_NAME without exposing plaintext email", () => {
     const prev = process.env.NEXT_PUBLIC_DATA_CONTROLLER_NAME;
     process.env.NEXT_PUBLIC_DATA_CONTROLLER_NAME = "Mario Rossi";
-    const { getByTestId } = render(<PrivacyPolicyPage />);
+    const { getByTestId, container } = render(<PrivacyPolicyPage />);
     expect(getByTestId("controller-identity-notice").textContent).toContain("Mario Rossi");
+    expect(container.querySelector('a[href^="mailto:"]')).toBeNull();
+    expect(container.textContent).not.toContain("support@kebapps.app");
     process.env.NEXT_PUBLIC_DATA_CONTROLLER_NAME = prev;
   });
 });

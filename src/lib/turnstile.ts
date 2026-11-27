@@ -8,6 +8,16 @@ interface TurnstileResponse {
 }
 
 const CLOUDFLARE_TEST_SECRET_KEY = "1x0000000000000000000000000000000AA";
+const CLOUDFLARE_TEST_SECRET_KEYS = new Set([
+  "1x0000000000000000000000000000000AA",
+  "2x0000000000000000000000000000000AA",
+  "3x0000000000000000000000000000000AA",
+]);
+
+export interface ValidateTurnstileOptions {
+  secretKey?: string;
+  secretEnvName?: string;
+}
 
 /**
  * Validates a Cloudflare Turnstile token securely on the server-side.
@@ -16,26 +26,32 @@ const CLOUDFLARE_TEST_SECRET_KEY = "1x0000000000000000000000000000000AA";
  * @param token The turnstile token received from the client-side component.
  * @param ip Optional: The IP address of the user (recommended for better validation).
  * @param expectedAction Optional: The specific action name expected for this token.
+ * @param options Optional: Override secret key and env var name for dedicated widgets.
  * @returns A boolean indicating whether the token is valid.
  */
 export async function validateTurnstileToken(
   token: string,
   ip?: string,
-  expectedAction?: string
+  expectedAction?: string,
+  options?: ValidateTurnstileOptions
 ): Promise<boolean> {
-  const secret = process.env.TURNSTILE_SECRET_KEY;
+  const secretEnvName = options?.secretEnvName ?? "TURNSTILE_SECRET_KEY";
+  const secret =
+    options && "secretKey" in options
+      ? options.secretKey
+      : process.env.TURNSTILE_SECRET_KEY;
   const isProd = process.env.NODE_ENV === "production";
 
   if (!secret) {
     if (isProd) {
-      throw new Error("TURNSTILE_SECRET_KEY is required in production environment.");
+      throw new Error(`${secretEnvName} is required in production environment.`);
     }
-    console.warn("TURNSTILE_SECRET_KEY is not defined in the environment. Bypassing validation (NOT FOR PRODUCTION).");
+    console.warn(`${secretEnvName} is not defined in the environment. Bypassing validation (NOT FOR PRODUCTION).`);
     return true; // Bypass in dev if no secret is provided, but log a warning
   }
 
-  if (isProd && secret === CLOUDFLARE_TEST_SECRET_KEY) {
-    console.error("Cloudflare Turnstile test secret key is forbidden in production.");
+  if (isProd && CLOUDFLARE_TEST_SECRET_KEYS.has(secret)) {
+    console.error(`Cloudflare Turnstile test secret key (${secretEnvName}) is forbidden in production.`);
     return false;
   }
 

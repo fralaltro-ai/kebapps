@@ -163,6 +163,8 @@ test.describe("Zero-Auth Local-First User Flow (Phase D)", () => {
 
     const supportDocsSection = page.getByTestId("profile-support-docs-section");
     await expect(supportDocsSection).toBeVisible();
+    await expect(page.getByTestId("support-mailto-link")).toHaveCount(0);
+    await page.getByTestId("support-unlock-trigger").click();
     await expect(page.getByTestId("support-mailto-link")).toHaveAttribute("href", /^mailto:/);
 
     const legalRoutes = [

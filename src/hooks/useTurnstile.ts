@@ -9,12 +9,17 @@ interface UseTurnstileOptions {
    * for the check to mean anything (SEC-BOT-12) — required so no call site forgets it.
    */
   action: string;
-  size?: "normal" | "compact" | "invisible";
+  /** Optional site key override for dedicated widgets (defaults to NEXT_PUBLIC_TURNSTILE_SITE_KEY). */
+  siteKey?: string;
+  size?: "normal" | "compact" | "flexible" | "invisible";
   theme?: "auto" | "light" | "dark";
   /** "render" (default): widget auto-executes on mount/reset. "execute": waits for execute(). */
   execution?: "render" | "execute";
+  appearance?: "always" | "execute" | "interaction-only";
   /** Called with the token on every successful verification (mainly for "render" mode). */
   onVerify?: (token: string) => void;
+  /** Called when an interactive ("render"-mode) token expires before submission. */
+  onExpire?: () => void;
   /** Called once the original attempt AND the transparent retry have both failed. */
   onError?: (message: string) => void;
   /** Ms to wait for a response before treating an execute() call as failed (default 15s). */
@@ -25,28 +30,32 @@ interface UseTurnstileOptions {
 const READY_WAIT_MS = 5000;
 
 const TURNSTILE_SCRIPT_ATTR = "data-kebapp-turnstile";
-let turnstileScriptPromise: Promise<void> | null = null;
+let turnstileScriptPromise: Promise<boolean> | null = null;
 
 /**
  * COMP-AUDIT-D2: loads the Turnstile script on demand, the first time any widget on the
  * page actually mounts, instead of unconditionally in the root layout on every route.
  * Idempotent and safe across concurrently-mounting widgets (module-level singleton
  * promise, and a marker attribute so a second hook instance finds the same <script> tag
- * rather than injecting a duplicate).
+ * rather than injecting a duplicate). Clears cache and tag on load failure so retry works.
  */
-function ensureTurnstileScript(): Promise<void> {
-  if (typeof window === "undefined") return Promise.resolve();
-  if (window.turnstile) return Promise.resolve();
+function ensureTurnstileScript(): Promise<boolean> {
+  if (typeof window === "undefined") return Promise.resolve(false);
+  if (window.turnstile) return Promise.resolve(true);
   if (turnstileScriptPromise) return turnstileScriptPromise;
 
   turnstileScriptPromise = new Promise((resolve) => {
     const existing = document.querySelector<HTMLScriptElement>(`script[${TURNSTILE_SCRIPT_ATTR}]`);
     if (existing) {
       if (window.turnstile) {
-        resolve();
+        resolve(true);
       } else {
-        existing.addEventListener("load", () => resolve(), { once: true });
-        existing.addEventListener("error", () => resolve(), { once: true });
+        existing.addEventListener("load", () => resolve(true), { once: true });
+        existing.addEventListener("error", () => {
+          existing.remove();
+          turnstileScriptPromise = null;
+          resolve(false);
+        }, { once: true });
       }
       return;
     }
@@ -54,17 +63,19 @@ function ensureTurnstileScript(): Promise<void> {
     script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
     script.async = true;
     script.setAttribute(TURNSTILE_SCRIPT_ATTR, "1");
-    // Resolve on error too: renderWidget()'s own polling loop is the real readiness
-    // gate (it checks window.turnstile), this promise only paces the first attempt.
-    script.addEventListener("load", () => resolve(), { once: true });
-    script.addEventListener("error", () => resolve(), { once: true });
+    script.addEventListener("load", () => resolve(true), { once: true });
+    script.addEventListener("error", () => {
+      script.remove();
+      turnstileScriptPromise = null;
+      resolve(false);
+    }, { once: true });
     document.head.appendChild(script);
   });
   return turnstileScriptPromise;
 }
 
 /**
- * Shared Cloudflare Turnstile lifecycle hook (invisible mode, zero interactive popups).
+ * Shared Cloudflare Turnstile lifecycle hook (invisible and managed/visible modes).
  *
  * Consolidates the render/execute/reset plumbing that previously existed in
  * hand-rolled forms. Registers error-callback / expired-callback / timeout-callback
@@ -77,15 +88,19 @@ function ensureTurnstileScript(): Promise<void> {
  */
 export function useTurnstile({
   action,
+  siteKey,
   size = "invisible",
   theme = "auto",
   execution = "render",
+  appearance,
   onVerify,
+  onExpire,
   onError,
   timeoutMs = 15000,
 }: UseTurnstileOptions) {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const containerRef = useCallback((node: HTMLDivElement | null) => setContainer(node), []);
+  const resolvedSiteKey = siteKey ?? process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
   const widgetIdRef = useRef<string | null>(null);
   const resolverRef = useRef<((token: string) => void) | null>(null);
@@ -97,8 +112,10 @@ export function useTurnstile({
 
   // Keep the latest callbacks without forcing the render effect to re-run.
   const onVerifyRef = useRef(onVerify);
+  const onExpireRef = useRef(onExpire);
   const onErrorRef = useRef(onError);
   onVerifyRef.current = onVerify;
+  onExpireRef.current = onExpire;
   onErrorRef.current = onError;
 
   const clearRetryGuard = useCallback(() => {
@@ -108,10 +125,11 @@ export function useTurnstile({
     }
   }, []);
 
-  const handleFailure = useCallback((reason: string) => {
+  const handleFailure = useCallback((reason: string, opts?: { expired?: boolean }) => {
     clearRetryGuard();
-    // Idle expiration/error with no active execute() caller: reset widget quietly without minting in background.
-    if (!rejecterRef.current) {
+    // Idle expiration/error with no active execute() caller in "execute" mode:
+    // reset widget quietly without minting in background.
+    if (execution === "execute" && !rejecterRef.current) {
       hasExecutedRef.current = false;
       retriedRef.current = false;
       if (widgetIdRef.current && window.turnstile) {
@@ -124,22 +142,36 @@ export function useTurnstile({
       return;
     }
 
+    if (execution === "render" && opts?.expired) {
+      hasExecutedRef.current = false;
+      retriedRef.current = false;
+      if (widgetIdRef.current && window.turnstile) {
+        try {
+          window.turnstile.reset(widgetIdRef.current);
+        } catch {
+          // widget already removed or detached
+        }
+      }
+      onExpireRef.current?.();
+      return;
+    }
+
     if (!retriedRef.current && widgetIdRef.current && window.turnstile) {
       retriedRef.current = true;
       try {
         window.turnstile.reset(widgetIdRef.current);
         if (execution === "execute") {
           window.turnstile.execute(widgetIdRef.current);
+          // Guard the retry itself: if it never calls back, fail hard instead of
+          // leaving a pending promise hanging. Cleared on success, on settle and
+          // on the next execute(), so it can never fire into a later attempt.
+          retryGuardRef.current = setTimeout(() => {
+            retryGuardRef.current = null;
+            if (rejecterRef.current) {
+              handleFailure("Turnstile: la verifica anti-bot non ha risposto dopo il retry.");
+            }
+          }, timeoutMs);
         }
-        // Guard the retry itself: if it never calls back, fail hard instead of
-        // leaving a pending promise hanging. Cleared on success, on settle and
-        // on the next execute(), so it can never fire into a later attempt.
-        retryGuardRef.current = setTimeout(() => {
-          retryGuardRef.current = null;
-          if (rejecterRef.current) {
-            handleFailure("Turnstile: la verifica anti-bot non ha risposto dopo il retry.");
-          }
-        }, timeoutMs);
         return;
       } catch {
         // fall through to hard failure below
@@ -165,11 +197,12 @@ export function useTurnstile({
       try {
         hasExecutedRef.current = false;
         widgetIdRef.current = window.turnstile.render(container, {
-          sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "",
+          sitekey: resolvedSiteKey,
           action,
           size,
           theme,
           execution,
+          ...(appearance ? { appearance } : {}),
           "refresh-expired": "auto",
           callback: (token: string) => {
             hasExecutedRef.current = true;
@@ -184,23 +217,44 @@ export function useTurnstile({
             }
           },
           "error-callback": () => handleFailure("Verifica anti-bot fallita (errore Turnstile)."),
-          "expired-callback": () => handleFailure("Verifica anti-bot scaduta."),
+          "expired-callback": () => handleFailure("Verifica anti-bot scaduta.", { expired: true }),
           "timeout-callback": () => handleFailure("Verifica anti-bot: timeout della challenge."),
         });
       } catch (err) {
         console.error("Error rendering Turnstile:", err);
+        if (execution === "render") {
+          onErrorRef.current?.("Impossibile inizializzare il controllo anti-bot.");
+        }
       }
       // Script is present: stop polling whether or not render succeeded, a
       // render exception will not resolve itself by retrying every 500ms.
       return true;
     };
 
-    void ensureTurnstileScript().then(() => {
+    void ensureTurnstileScript().then((loaded) => {
       if (cancelled) return;
+      if (!loaded && !window.turnstile) {
+        if (execution === "render") {
+          onErrorRef.current?.("Impossibile caricare la verifica anti-bot Cloudflare Turnstile.");
+        }
+        return;
+      }
       if (!renderWidget()) {
-        // Script loaded but window.turnstile not yet initialized: poll briefly.
+        // Script loaded but window.turnstile not yet initialized: poll briefly within timeoutMs.
+        const pollStartedAt = Date.now();
         interval = setInterval(() => {
-          if (renderWidget() && interval) clearInterval(interval);
+          if (cancelled) {
+            clearInterval(interval);
+            return;
+          }
+          if (renderWidget()) {
+            clearInterval(interval);
+            return;
+          }
+          if (execution === "render" && Date.now() - pollStartedAt >= timeoutMs) {
+            clearInterval(interval);
+            onErrorRef.current?.("Verifica anti-bot non disponibile o bloccata dal browser.");
+          }
         }, 500);
       }
     });
@@ -225,7 +279,7 @@ export function useTurnstile({
       hasExecutedRef.current = false;
       widgetIdRef.current = null;
     };
-  }, [container, action, size, theme, execution, handleFailure, clearRetryGuard]);
+  }, [container, resolvedSiteKey, action, size, theme, execution, appearance, timeoutMs, handleFailure, clearRetryGuard]);
 
   const reset = useCallback(() => {
     hasExecutedRef.current = false;

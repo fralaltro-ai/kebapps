@@ -21,7 +21,7 @@ npm run dev:cf
 Cosa fa `scripts/cf-local.mjs`:
 - Legge `.env.local` e genera `.dev.vars` (con permessi `0600`, ignorato da git).
 - Imposta `NEXT_PUBLIC_SITE_URL=http://localhost:8787` e applica il kill-switch locale (`NEXT_PUBLIC_DISABLE_PAID_APIS=1`, `DISABLE_PAID_APIS=1` se non diversamente specificato).
-- Supporta opzionalmente `LOCAL_TURNSTILE_SITE_KEY` e `LOCAL_TURNSTILE_SECRET_KEY` in `.env.local` per usare un widget Turnstile dedicato allo sviluppo locale.
+- Supporta opzionalmente `LOCAL_TURNSTILE_SITE_KEY` / `LOCAL_TURNSTILE_SECRET_KEY` (widget mappa) e `LOCAL_TURNSTILE_SUPPORT_SITE_KEY` / `LOCAL_TURNSTILE_SUPPORT_SECRET_KEY` (widget supporto) in `.env.local` per usare widget Turnstile dedicati allo sviluppo locale.
 - Si rifiuta di eseguire `build:cf:local` se `.env.production.local` è presente nella root, per evitare di mescolare segreti di produzione in un bundle locale.
 
 > Il bundle prodotto da `build:cf:local` incorpora `localhost:8787` e **non deve mai essere deployato** in produzione (`scripts/cf-deploy-guard.mjs` blocca il deploy).
@@ -31,19 +31,21 @@ Cosa fa `scripts/cf-local.mjs`:
 ## 2. Variabili d'Ambiente e Segreti per la Produzione
 
 ### Variabili pubbliche (`NEXT_PUBLIC_*`, incorporate al build time)
-Devono essere definite in `.env.production.local` (file temporaneo, escluso da git) al momento di eseguire `npm run build:cf`. **Lascia sempre vuote (`""`) le chiavi server-only** `GOOGLE_PLACES_BACKEND_KEY` e `TURNSTILE_SECRET_KEY` dentro `.env.production.local`, affinché `@opennextjs/cloudflare` non le incorpori in chiaro in `.open-next/cloudflare/next-env.mjs` e il Worker le legga esclusivamente dai Cloudflare Encrypted Secrets:
+Devono essere definite in `.env.production.local` (file temporaneo, escluso da git) al momento di eseguire `npm run build:cf`. **Lascia sempre vuote (`""`) le chiavi e il recapito server-only** `GOOGLE_PLACES_BACKEND_KEY`, `TURNSTILE_SECRET_KEY`, `TURNSTILE_SUPPORT_SECRET_KEY` e `SUPPORT_EMAIL` dentro `.env.production.local`, affinché `@opennextjs/cloudflare` non li incorpori in chiaro in `.open-next/cloudflare/next-env.mjs` e il Worker li legga esclusivamente dai Cloudflare Encrypted Secrets (non impostare `NEXT_PUBLIC_SUPPORT_EMAIL`):
 
 ```env
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="AIzaSy...chiave-frontend-produzione..."
 NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID="tuo-map-id-reale-google-cloud" # Obbligatorio in produzione ("DEMO_MAP_ID" bloccato)
-NEXT_PUBLIC_TURNSTILE_SITE_KEY="0x4AAAAAAA...site-key-produzione..."
+NEXT_PUBLIC_TURNSTILE_SITE_KEY="0x4AAAAAAA...site-key-invisible-mappa..."
+NEXT_PUBLIC_TURNSTILE_SUPPORT_SITE_KEY="0x4AAAAAAA...site-key-managed-supporto..."
 NEXT_PUBLIC_SITE_URL="https://kebapps.app"
 NEXT_PUBLIC_DISABLE_PAID_APIS="0"
 DISABLE_PAID_APIS="0"
 GOOGLE_PLACES_BACKEND_KEY=""
 TURNSTILE_SECRET_KEY=""
+TURNSTILE_SUPPORT_SECRET_KEY=""
+SUPPORT_EMAIL=""
 ENABLE_PWA_DEV="false"
-NEXT_PUBLIC_SUPPORT_EMAIL="support@kebapps.app"
 NEXT_PUBLIC_DATA_CONTROLLER_NAME="Nome Cognome Reali del Titolare"
 NEXT_PUBLIC_DATA_CONTROLLER_LOCATION="Italia"
 NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=""
@@ -56,6 +58,8 @@ Carica i segreti crittografati sul Worker `kebapps` (da Dashboard Cloudflare o v
 ```bash
 npx wrangler secret put GOOGLE_PLACES_BACKEND_KEY
 npx wrangler secret put TURNSTILE_SECRET_KEY
+npx wrangler secret put TURNSTILE_SUPPORT_SECRET_KEY
+npx wrangler secret put SUPPORT_EMAIL
 npx wrangler secret put DISABLE_PAID_APIS
 ```
 
@@ -86,8 +90,8 @@ npx wrangler secret put DISABLE_PAID_APIS
    - nessun file `.env` residuo sia presente nella root;
    - `localhost:8787` e `NEXT_PUBLIC_SITE_URL=localhost` non siano presenti nel bundle;
    - `NEXT_PUBLIC_DISABLE_PAID_APIS` e `DISABLE_PAID_APIS` non siano bloccati sul kill-switch `1`;
-   - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` e `NEXT_PUBLIC_TURNSTILE_SITE_KEY` siano presenti in `.open-next/cloudflare/next-env.mjs` e quest'ultima non usi la chiave dummy di test Cloudflare;
-   - `GOOGLE_PLACES_BACKEND_KEY` e `TURNSTILE_SECRET_KEY` **non** siano incorporati in chiaro in `.open-next/cloudflare/next-env.mjs` (devono essere gestiti solo tramite `wrangler secret put`);
+   - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` e `NEXT_PUBLIC_TURNSTILE_SUPPORT_SITE_KEY` siano presenti in `.open-next/cloudflare/next-env.mjs` e le chiavi Turnstile non usino chiavi dummy di test Cloudflare;
+   - `GOOGLE_PLACES_BACKEND_KEY`, `TURNSTILE_SECRET_KEY`, `TURNSTILE_SUPPORT_SECRET_KEY` e `SUPPORT_EMAIL` **non** siano incorporati in chiaro in `.open-next/cloudflare/next-env.mjs` (devono essere gestiti solo tramite `wrangler secret put`) e `NEXT_PUBLIC_SUPPORT_EMAIL` non sia valorizzato in produzione;
    - `NEXT_PUBLIC_DATA_CONTROLLER_NAME` sia valorizzato con nome e cognome reali o ragione sociale (bloccando valori mancanti o generici come `KebApps` / `Team KebApps` ex Art. 13 GDPR);
    - tutte le variabili di `.env.local` siano ridefinite in `.env.production.local`.
 5. Rimuovi o sposta `.env.production.local` fuori dalla cartella del progetto a deploy completato.
@@ -103,5 +107,5 @@ npx wrangler secret put DISABLE_PAID_APIS
    - Mantieni disattivato **Bot Fight Mode** (che può servire script di challenge JS fuori consenso o bloccare `Googlebot` / `Google-InspectionTool`) e proteggi invece `/api/*` con una regola **WAF Custom Rate Limiting** (piano Free: limite es. 30 req/min per IP) affiancata a Turnstile.
 3. **Google Search Console:** verifica la proprietà Dominio tramite record TXT DNS su Cloudflare (o con `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`) e invia `https://<tuo-dominio>/sitemap.xml`.
 4. **Google Cloud Console:** aggiorna le restrizioni *HTTP Referrers* su `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` aggiungendo il dominio di produzione (es. `https://kebapps.app/*`) e verifica che la chiave frontend sia limitata esclusivamente a **Maps JavaScript API** e **Places UI Kit**.
-5. **Cloudflare Turnstile:** aggiungi il dominio di produzione agli hostname autorizzati del widget Turnstile.
+5. **Cloudflare Turnstile:** aggiungi il dominio di produzione (`kebapps.app`, `www.kebapps.app`) agli hostname autorizzati sia del widget **Invisible** (mappa) sia del widget **Managed** dedicato al contatto supporto.
 6. **Hard Quotas Google Cloud, Identità Titolare & Allineamento Contatti:** prima di disattivare `DISABLE_PAID_APIS=1`, configura sempre **Hard Quotas giornaliere** e **Budget Alert** in Google Cloud Console sulle 4 API abilitate, verifica la proprietà operativa di `kebapps.app`, `support@kebapps.app` e del repository GitHub collegato e assicurati che `NEXT_PUBLIC_DATA_CONTROLLER_LOCATION` includa città e provincia reali (es. `"Milano (MI), Italia"`).

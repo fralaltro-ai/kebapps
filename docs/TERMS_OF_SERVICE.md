@@ -1,7 +1,7 @@
 # Termini e Condizioni di Servizio — KebApps
 
-**Versione:** 2.5
-**Data ultimo aggiornamento:** 24 Novembre 2026
+**Versione:** 2.6
+**Data ultimo aggiornamento:** 27 Novembre 2026
 
 L'accesso e l'utilizzo dell'applicazione web progressiva **KebApps** (di seguito, il **"Servizio"**) implicano l'accettazione dei presenti Termini e Condizioni di Servizio da parte dell'utente.
 
@@ -67,4 +67,4 @@ I presenti Termini sono regolati dalla **legge italiana**. Per ogni controversia
 
 ## 8. Modifiche ai Termini e Contatti
 
-Il Titolare può aggiornare i presenti Termini per adeguarli a variazioni tecniche o normative, aggiornando versione e data in intestazione (nonché richiedendo eventuale rinnovo dei consensi ove necessario). Per segnalazioni o comunicazioni legali: **`support@kebapps.app`**.
+Il Titolare può aggiornare i presenti Termini per adeguarli a variazioni tecniche o normative, aggiornando versione e data in intestazione (nonché richiedendo eventuale rinnovo dei consensi ove necessario). Per segnalazioni o comunicazioni legali è disponibile il recapito email del Titolare sbloccabile tramite verifica anti-bot nel riquadro informativo in cima alle pagine legali oppure in **Profilo → Supporto, Info & Documenti**.

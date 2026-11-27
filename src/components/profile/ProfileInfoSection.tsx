@@ -7,9 +7,9 @@ import {
   Mail,
   ShieldCheck,
 } from "lucide-react";
+import { SupportEmailGate } from "@/components/support/SupportEmailGate";
 
 export function ProfileInfoSection() {
-  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@kebapps.app";
   const repoUrl = process.env.NEXT_PUBLIC_REPOSITORY_URL || "";
 
   return (
@@ -40,26 +40,23 @@ export function ProfileInfoSection() {
                 </h3>
               </div>
               <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                Nessun form server né raccolta automatica di dati: per assistenza o segnalazioni puoi scrivere direttamente dal tuo client di posta.
+                Nessun form server né raccolta automatica di dati: completa la rapida verifica anti-bot su richiesta per sbloccare il recapito email di assistenza.
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <a
-                href={`mailto:${supportEmail}?subject=${encodeURIComponent("[KebApps] Supporto / Segnalazione")}`}
-                data-testid="support-mailto-link"
-                className="min-h-[40px] px-4 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-black uppercase tracking-wider shadow-flat flat-press inline-flex items-center gap-1.5"
-              >
-                <Mail className="size-3.5" /> {supportEmail}
-              </a>
+
+            <div className="space-y-3">
+              <SupportEmailGate variant="card" />
               {repoUrl && (
-                <a
-                  href={repoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="min-h-[40px] px-3.5 py-2.5 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-black uppercase tracking-wider flat-press inline-flex items-center gap-1.5"
-                >
-                  Repository <ExternalLink className="size-3.5" />
-                </a>
+                <div>
+                  <a
+                    href={repoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="min-h-[44px] px-3.5 py-2.5 rounded-xl bg-card hover:bg-muted border border-border text-foreground text-xs font-black uppercase tracking-wider flat-press inline-flex items-center gap-1.5"
+                  >
+                    Repository <ExternalLink className="size-3.5" />
+                  </a>
+                </div>
               )}
             </div>
           </div>

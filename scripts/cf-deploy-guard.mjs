@@ -36,7 +36,18 @@ if (filesWith(LOCAL_URL) > 0) {
   problems.push(`il bundle contiene ${LOCAL_URL}: è una build locale di test`);
 }
 
-const DUMMY_TURNSTILE_SITE_KEY = "1x00000000000000000000AA";
+const DUMMY_TURNSTILE_SITE_KEYS = new Set([
+  "1x00000000000000000000AA",
+  "2x00000000000000000000AB",
+  "1x00000000000000000000BB",
+  "2x00000000000000000000BB",
+  "3x00000000000000000000FF",
+]);
+const DUMMY_TURNSTILE_SECRET_KEYS = new Set([
+  "1x0000000000000000000000000000000AA",
+  "2x0000000000000000000000000000000AA",
+  "3x0000000000000000000000000000000AA",
+]);
 const nextEnvPath = path.join(bundle, "cloudflare", "next-env.mjs");
 if (fs.existsSync(nextEnvPath)) {
   const { production = {} } = await import(pathToFileURL(nextEnvPath).href);
@@ -57,15 +68,33 @@ if (fs.existsSync(nextEnvPath)) {
   }
   if (!production.NEXT_PUBLIC_TURNSTILE_SITE_KEY) {
     problems.push("NEXT_PUBLIC_TURNSTILE_SITE_KEY mancante nella build di produzione");
-  } else if (production.NEXT_PUBLIC_TURNSTILE_SITE_KEY === DUMMY_TURNSTILE_SITE_KEY) {
-    problems.push("NEXT_PUBLIC_TURNSTILE_SITE_KEY usa la chiave dummy di test Cloudflare in produzione");
+  } else if (DUMMY_TURNSTILE_SITE_KEYS.has(production.NEXT_PUBLIC_TURNSTILE_SITE_KEY)) {
+    problems.push("NEXT_PUBLIC_TURNSTILE_SITE_KEY usa una chiave dummy di test Cloudflare in produzione");
   }
-  if (production.TURNSTILE_SECRET_KEY === "1x0000000000000000000000000000000AA") {
-    problems.push("TURNSTILE_SECRET_KEY usa la chiave dummy di test Cloudflare in produzione");
+  if (!production.NEXT_PUBLIC_TURNSTILE_SUPPORT_SITE_KEY) {
+    problems.push("NEXT_PUBLIC_TURNSTILE_SUPPORT_SITE_KEY mancante nella build di produzione");
+  } else if (DUMMY_TURNSTILE_SITE_KEYS.has(production.NEXT_PUBLIC_TURNSTILE_SUPPORT_SITE_KEY)) {
+    problems.push("NEXT_PUBLIC_TURNSTILE_SUPPORT_SITE_KEY usa una chiave dummy di test Cloudflare in produzione");
   }
-  if (production.GOOGLE_PLACES_BACKEND_KEY || production.TURNSTILE_SECRET_KEY) {
+  if (
+    DUMMY_TURNSTILE_SECRET_KEYS.has(production.TURNSTILE_SECRET_KEY) ||
+    DUMMY_TURNSTILE_SECRET_KEYS.has(production.TURNSTILE_SUPPORT_SECRET_KEY)
+  ) {
+    problems.push("TURNSTILE_SECRET_KEY / TURNSTILE_SUPPORT_SECRET_KEY usa una chiave dummy di test Cloudflare in produzione");
+  }
+  if (
+    production.GOOGLE_PLACES_BACKEND_KEY ||
+    production.TURNSTILE_SECRET_KEY ||
+    production.TURNSTILE_SUPPORT_SECRET_KEY ||
+    production.SUPPORT_EMAIL
+  ) {
     problems.push(
-      "GOOGLE_PLACES_BACKEND_KEY / TURNSTILE_SECRET_KEY incorporati in chiaro in .open-next/cloudflare/next-env.mjs: lasciali vuoti (\"\") in .env.production.local e caricali solo via `npx wrangler secret put`"
+      "GOOGLE_PLACES_BACKEND_KEY / TURNSTILE_SECRET_KEY / TURNSTILE_SUPPORT_SECRET_KEY / SUPPORT_EMAIL incorporati in chiaro in .open-next/cloudflare/next-env.mjs: lasciali vuoti (\"\") in .env.production.local e caricali solo via `npx wrangler secret put`"
+    );
+  }
+  if ((production.NEXT_PUBLIC_SUPPORT_EMAIL || "").trim()) {
+    problems.push(
+      "NEXT_PUBLIC_SUPPORT_EMAIL valorizzato in produzione: rimuovilo e usa solo SUPPORT_EMAIL via `npx wrangler secret put SUPPORT_EMAIL` affinche' l'email resti protetta dietro Turnstile"
     );
   }
 

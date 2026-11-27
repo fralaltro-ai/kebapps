@@ -1,4 +1,4 @@
-export const CURRENT_CONSENT_POLICY_VERSION = "2.5" as const;
+export const CURRENT_CONSENT_POLICY_VERSION = "2.6" as const;
 export const CONSENT_TTL_MS = 180 * 24 * 60 * 60 * 1000; // 180 days (Garante Cookie Guidelines 2021)
 
 export type PersistedConsentChoice = "granted" | "denied";

@@ -1,7 +1,7 @@
 # Informativa sulla Privacy (GDPR) — KebApps (Versione Local-First)
 
-**Versione:** 2.5
-**Data ultimo aggiornamento:** 24 Novembre 2026
+**Versione:** 2.6
+**Data ultimo aggiornamento:** 27 Novembre 2026
 
 La presente Informativa descrive in modo trasparente le modalità di funzionamento di **KebApps** (di seguito, il **"Servizio"**), applicazione web progressiva (PWA) con archiviazione locale dei dati personali dell'utente, ai sensi degli articoli 13 e 14 del Regolamento (UE) 2016/679 (**GDPR**), del D.Lgs. 196/2003 (Codice Privacy come modificato dal D.Lgs. 101/2018) e della normativa ePrivacy (Direttiva 2002/58/CE / art. 122 Codice Privacy).
 
@@ -9,7 +9,7 @@ La presente Informativa descrive in modo trasparente le modalità di funzionamen
 
 ## 1. Titolare del Trattamento e Contatti
 
-I riferimenti completi del Titolare del Trattamento per l'istanza pubblica (nome e cognome, luogo di residenza completo di città e provincia e recapito email dedicato **`support@kebapps.app`**) sono sempre esposti nel riquadro informativo pubblico in calce a questa pagina e nelle pagine legali del Servizio.
+I riferimenti completi del Titolare del Trattamento per l'istanza pubblica (nome e cognome e luogo di residenza completo di città e provincia) sono sempre esposti nel riquadro informativo pubblico in calce/testata delle pagine legali del Servizio. Per prevenire abuso e spamming automatizzato, l'indirizzo email dedicato del Titolare viene sbloccato esclusivamente su richiesta dell'utente tramite verifica anti-bot **Cloudflare Turnstile** direttamente dallo stesso riquadro o dalla sezione **Profilo → Supporto, Info & Documenti**.
 
 ---
 
@@ -33,7 +33,7 @@ Quando utilizzi l'app, i seguenti dati sono salvati solo nel tuo browser:
    - `wishlist`: locali da provare inseriti o salvati dall'utente (etichetta, eventuale nota fino a 200 caratteri, ordinamento personalizzato, data di aggiunta), anch'essi soggetti all'azzeramento automatico dopo **30 giorni solari** per eventuali coordinate derivate da Google Maps ed esclusi dal backup JSON;
    - `map_cache`: cache tecnica effimera delle sole coppie `place_id` + coordinate (`latitude`, `longitude`) con scadenza automatica massima di **24 ore** (`MAP_CACHE_TTL_MS`) e tetto massimo di **150 voci** con rimozione LRU; non contiene nomi né indirizzi di locali forniti da Google e non viene mai esportata nei backup.
 2. **`localStorage` e `sessionStorage`:**
-   - Consensi versionati (`kebapp_maps_consent`, `kebapp_gps_consent`) salvati in formato JSON con versione policy corrente (`2.5`) e durata massima di **180 giorni**; in modalità dimostrativa Zero-Cost (senza chiave Google Maps attiva) nessun consenso Google Maps viene richiesto o memorizzato;
+   - Consensi versionati (`kebapp_maps_consent`, `kebapp_gps_consent`) salvati in formato JSON con versione policy corrente (`2.6`) e durata massima di **180 giorni**; in modalità dimostrativa Zero-Cost (senza chiave Google Maps attiva) nessun consenso Google Maps viene richiesto o memorizzato;
    - Preferenze UI e contatore tecnico onboarding/installazione PWA (`kebapp-theme`, `kebapp_onboarding_done`, `kebapp_pwa_dismissed`, `kebapp_ios_pwa_dismissed`, `kebapp_sessions`), senza attivazione né incremento di `kebapp_sessions` sulle pagine legali (`/privacy-policy`, `/cookie-policy`, `/terms`) né sulla vista `/~offline`;
    - Posizione GPS effimera solo di scheda (`sessionStorage` chiave `kebapp_cached_pos`), cancellata alla chiusura della scheda o immediatamente alla revoca del consenso GPS.
 
@@ -57,9 +57,9 @@ Puoi esportare il backup JSON locale (privo di `map_cache` e di coordinate deriv
 Per ciascun trattamento esterno si applica **una singola base giuridica determinata** (nessuna sovrapposizione ambigua):
 
 1. **Cloudflare, Inc. — Hosting Edge, CDN, WAF, Network Error Logging e Cloudflare Turnstile (USA / Rete Globale):**
-   - **Dati trattati:** indirizzo IP, header HTTP/TLS, telemetria tecnica anti-bot di Cloudflare Turnstile (validata sugli endpoint `/api/shops` e `/api/geocode-search` dietro caricamento post-consenso in mappa) e contatori effimeri di rate-limiting in memoria RAM sui nodi edge (`10s` per `/api/geocode-search`, `60s` per `/api/shops`).
-   - **Finalità e base giuridica:** sicurezza informatica, prevenzione abusi/DDoS, protezione da traffico automatizzato e continuità tecnica del Servizio ai sensi dell'**Art. 6(1)(f) GDPR** (legittimo interesse del Titolare alla sicurezza e integrità dei sistemi esposti in rete, che non prevale sui diritti dell'interessato trattandosi di controlli tecnici minimi e non profilazione pubblicitaria).
-   - **Conservazione:** contatori rate-limit effimeri in RAM (`10s` / `60s`); eventuali log operativi tecnici di edge/WAF gestiti da Cloudflare secondo la finestra operativa applicabile al piano gratuito Workers/Pages e le politiche Cloudflare.
+   - **Dati trattati:** indirizzo IP, header HTTP/TLS, telemetria tecnica anti-bot di Cloudflare Turnstile (caricata **esclusivamente on-demand**: sugli endpoint `/api/shops` e `/api/geocode-search` solo dopo consenso alla mappa, e su `GET /api/support-contact` solo dopo clic esplicito dell'utente per sbloccare l'indirizzo email di assistenza) e contatori effimeri di rate-limiting in memoria RAM sui nodi edge (`10s` per `/api/geocode-search`, `60s` per `/api/shops` e `/api/support-contact`).
+   - **Finalità e base giuridica:** sicurezza informatica, prevenzione abusi/DDoS, mitigazione dello spam verso i canali di contatto, protezione da traffico automatizzato e continuità tecnica del Servizio ai sensi dell'**Art. 6(1)(f) GDPR** (legittimo interesse del Titolare alla sicurezza e integrità dei sistemi e del recapito esposto in rete, che non prevale sui diritti dell'interessato trattandosi di controlli tecnici minimi attivati solo su richiesta e privi di profilazione pubblicitaria).
+   - **Conservazione:** contatori rate-limit effimeri in RAM (`10s` / `60s`); l'eventuale indirizzo email sbloccato rimane solo nella memoria temporanea della vista attiva e non viene salvato in `localStorage` o `IndexedDB`; eventuali log operativi tecnici di edge/WAF gestiti da Cloudflare secondo la finestra operativa applicabile al piano gratuito Workers/Pages e le politiche Cloudflare.
    - **Trasferimento Extra-UE:** Cloudflare, Inc. aderisce all'**EU-US Data Privacy Framework (DPF)** (Decisione di adeguatezza della Commissione Europea del 10 luglio 2023) e alle Clausole Contrattuali Standard (SCC) nel proprio Data Processing Addendum.
 2. **Google LLC / Google Ireland Limited — Google Maps Platform (Maps JS SDK, Places UI Kit, Places API New, Geocoding API):**
    - **Dati trattati:** indirizzo IP, user-agent/parametri SDK nel browser dell'utente (caricamento diretto di mappa e Places UI Kit) e bounding box quantizzata (`~550 m`) / stringa di ricerca indirizzo inviata tramite proxy stateless.
@@ -71,7 +71,7 @@ Per ciascun trattamento esterno si applica **una singola base giuridica determin
 ## 6. Natura del Conferimento (Art. 13(2)(e) GDPR)
 
 - I dati tecnici di connessione HTTP verso l'edge Cloudflare sono necessari per l'erogazione tecnica della pagina web e la sicurezza di rete: il rifiuto o il blocco lato browser impedisce il caricamento del Servizio.
-- Il consenso al caricamento di Google Maps / Turnstile e il consenso alla geolocalizzazione GPS sono **pienamente facoltativi**: puoi negarli o revocarli in qualunque momento continuando a usare liberamente Dashboard, Diario locale, Wishlist e gestione backup sul tuo dispositivo.
+- Il consenso al caricamento di Google Maps / Turnstile in mappa, l'attivazione on-demand della verifica Turnstile per visualizzare l'email di supporto e il consenso alla geolocalizzazione GPS sono **pienamente facoltativi**: puoi negarli o non attivarli in qualunque momento continuando a usare liberamente Dashboard, Diario locale, Wishlist e gestione backup sul tuo dispositivo.
 
 ---
 
@@ -79,11 +79,11 @@ Per ciascun trattamento esterno si applica **una singola base giuridica determin
 
 In ogni momento puoi esercitare i seguenti diritti:
 
-- **Accesso, rettifica, cancellazione, limitazione e portabilità (Artt. 15–20 GDPR):** per tutti i dati salvati sul tuo dispositivo puoi consultarli, modificarli, esportarli in JSON ed eliminarli autonomamente in locale tramite **Profilo → Gestione Dati** o cancellando i dati del sito dal browser. Poiché il Titolare non conserva database applicativi né profili lato server, ai sensi dell'**Art. 11 GDPR** il Titolare non è in grado di identificare né estrarre autonomamente i dati locali presenti sul tuo dispositivo senza una tua collaborazione diretta, fermo restando il riscontro trasparente per eventuali richieste scritte indirizzate a **`support@kebapps.app`**.
+- **Accesso, rettifica, cancellazione, limitazione e portabilità (Artt. 15–20 GDPR):** per tutti i dati salvati sul tuo dispositivo puoi consultarli, modificarli, esportarli in JSON ed eliminarli autonomamente in locale tramite **Profilo → Gestione Dati** o cancellando i dati del sito dal browser. Poiché il Titolare non conserva database applicativi né profili lato server, ai sensi dell'**Art. 11 GDPR** il Titolare non è in grado di identificare né estrarre autonomamente i dati locali presenti sul tuo dispositivo senza una tua collaborazione diretta, fermo restando il riscontro trasparente per eventuali richieste scritte indirizzate al recapito email del Titolare (sbloccabile tramite verifica anti-bot nel riquadro Titolare in cima alle pagine legali o in **Profilo → Supporto, Info & Documenti**).
 - **Revoca del consenso in ogni momento (Art. 7(3) GDPR):** senza pregiudicare la liceità del trattamento precedente alla revoca, puoi revocare i consensi Google Maps o GPS con 1 tap tramite l'icona scudo presente nella pagina **Mappa** oppure in **Profilo → Preferenze**, con effetto immediato e pulizia di `sessionStorage`.
 - **Reclamo all'Autorità di Controllo (Art. 77 GDPR):** se ritieni che il trattamento violi il GDPR, hai diritto di proporre reclamo al **Garante per la protezione dei dati personali** (`www.garanteprivacy.it`) o all'autorità competente nello Stato membro UE di residenza o lavoro.
 
-> **Diritto di Opposizione (Art. 21(1) e Art. 21(4) GDPR):** per i trattamenti tecnici basati sul legittimo interesse del Titolare (Art. 6(1)(f) GDPR — sicurezza di rete Cloudflare, mitigazione DDoS e protezione anti-bot Turnstile su richieste di ricerca), hai il diritto di opporti in qualsiasi momento, per motivi connessi alla tua situazione particolare, scrivendo a **`support@kebapps.app`**. In caso di opposizione, il Titolare si asterrà dal trattamento salvo dimostrare motivi legittimi cogenti prevalenti (es. difesa da attacchi o integrità dell'infrastruttura).
+> **Diritto di Opposizione (Art. 21(1) e Art. 21(4) GDPR):** per i trattamenti tecnici basati sul legittimo interesse del Titolare (Art. 6(1)(f) GDPR — sicurezza di rete Cloudflare, mitigazione DDoS, protezione anti-bot Turnstile su richieste di ricerca e sblocco anti-spam del contatto di supporto), hai il diritto di opporti in qualsiasi momento, per motivi connessi alla tua situazione particolare, scrivendo al recapito email del Titolare accessibile dal riquadro informativo in cima a questa pagina o da **Profilo → Supporto, Info & Documenti**. In caso di opposizione, il Titolare si asterrà dal trattamento salvo dimostrare motivi legittimi cogenti prevalenti (es. difesa da attacchi, prevenzione dello spam automatizzato o integrità dell'infrastruttura).
 
 ---
 
